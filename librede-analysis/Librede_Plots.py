@@ -71,8 +71,8 @@ responsetimeRegressionColor= plt.gca()._get_lines.prop_cycler.__next__()['color'
 
 
 # Lines for events
-for finishTime in estimations['Finish time']:
-    plt.axvline(x=finishTime, color=estimationColor)
+#for finishTime in estimations['Finish time']:
+#    plt.axvline(x=finishTime, color=estimationColor)
 for finishTime in recommendations['Finish time']:
     plt.axvline(x=finishTime, color=recommendationColor)
 for finishTime in optimizations['Finish time']:
