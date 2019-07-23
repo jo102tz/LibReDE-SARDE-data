@@ -25,7 +25,7 @@ def get_real_error(estimate, real):
 
     sum_error = 0
     for i, est in enumerate(estimate):
-        sum_error = math.fabs(est - real[i])/real[i]
+        sum_error = sum_error + math.fabs(est - real[i])/real[i]
     return sum_error/len(estimate)
 
 
