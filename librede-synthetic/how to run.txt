@@ -1,0 +1,18 @@
+==On the target machine (10.1.234.186):==
+
+run in two separate sessions:
+
+1.
+./lmdaemon
+
+2.
+sudo docker run -p 8080:8080 simoneismann/syntheticcomponents:librede
+
+
+==On the load generator machine (10.1.237.53):==
+
+java -jar httploadgenerator.jar loadgenerator
+
+==On the director machine:==
+
+java -cp load.jar:httploadgenerator.jar tools.descartes.dlim.httploadgenerator.runner.Main director --ip 10.1.237.53 --load longSingleSin54.csv --lua call_3wc.lua -p 10.1.234.186:22442 -c measurment.ProcListener -t 100 -o log.csv --randomize-users
