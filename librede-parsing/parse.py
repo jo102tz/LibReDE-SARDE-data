@@ -4,7 +4,9 @@ import pandas as pd
 import argparse
 from datetime import datetime
 import math
-from pytz import timezone
+
+TS_DIVISION_FACTOR = 1000000000
+RT_DIVISION_FACTOR = 1000000
 
 
 # Request storing all required info per request
@@ -16,7 +18,7 @@ class Request:
 
 
 # Accepts a pandas data frame and parses it into a list of requests dictionary, splitted for WCs.
-def parse_df_to_request_dict(df):
+def parse_df_to_request_dict(df, offset_timestamp):
     ret = {}
     for index, row in df.iterrows():
         in_time = row["Start"]
@@ -24,12 +26,24 @@ def parse_df_to_request_dict(df):
         wc = row["Url"]
         wc = wc.split("/")
         wc = wc[len(wc)-1]
-        request = Request(in_time, out_time, wc)
+        request = Request(offset_timestamp*TS_DIVISION_FACTOR + in_time, offset_timestamp*TS_DIVISION_FACTOR + out_time, wc)
         if wc not in ret:
             ret[wc] = []
         ret[wc].append(request)
+    # sort requests for each wc
     for requests in ret.values():
         requests.sort(key=get_request_key)
+    return ret
+
+
+# Accepts a list of requests and return a requests dictionary, splitted for timestamps.
+def parse_to_timestamp_dict(requests):
+    ret = {}
+    for req in requests:
+        in_time = req.in_time
+        if in_time not in ret:
+            ret[in_time] = []
+        ret[in_time].append(req)
     return ret
 
 
@@ -39,11 +53,11 @@ def get_request_key(req):
 
 
 # Exports a given request-list to a csv file
-def export_requests(file, requests, offset_timestamp):
+def export_requests(file, requests):
     with open(file, mode='w', newline="") as output_file:
         writer = csv.writer(output_file, delimiter=',')
         for req in requests:
-            writer.writerow([(req.in_time/1000000000) + offset_timestamp, (req.out_time - req.in_time)/1000000])
+            writer.writerow([(req.in_time/TS_DIVISION_FACTOR), (req.out_time - req.in_time)/RT_DIVISION_FACTOR])
 
 
 def convert_requests(stub, filename, start_timestamp):
@@ -51,12 +65,13 @@ def convert_requests(stub, filename, start_timestamp):
     print("Analysing "+file)
     csv_frame = pd.read_csv(file)
     first_ts = csv_frame["Start"][0]
-    offset_timestamp = start_timestamp - (first_ts/1000000000)
-    requests = parse_df_to_request_dict(csv_frame)
+    offset_timestamp = start_timestamp - (first_ts/TS_DIVISION_FACTOR)
+    requests = parse_df_to_request_dict(csv_frame, offset_timestamp)
     for wc in requests.values():
         outputname = os.path.join(stub, wc[0].wc)
         outputname = outputname + ".csv"
-        export_requests(outputname, wc, offset_timestamp)
+        export_requests(outputname, wc)
+    export_throughputs(os.path.join(stub, "arrivals.csv"), requests, len(requests))
 
 
 def convert_utilizations(stub, filename):
@@ -80,6 +95,44 @@ def convert_utilizations(stub, filename):
     for key, value in utils.items():
         export_utilizations(os.path.join(stub, key)+".csv", value, timestamp)
     return timestamp
+
+
+def export_throughputs(filename, requests, number_wcs):
+    print("Exporting arrival rates to "+filename)
+    wc_ts_dict = {}
+    for wc, reqs in requests.items():
+        wc_ts_dict[wc] = parse_to_timestamp_dict(reqs)
+    counts, wcs = count_dict(wc_ts_dict)
+    with open(filename, mode='w', newline="") as output_file:
+        writer = csv.writer(output_file, delimiter=',')
+        # write header
+        header = ["Timestamps"]
+        for i in range(0, len(wcs)):
+            header.append(wcs[i])
+        writer.writerow(header)
+        for ts, wcs_counts in counts.items():
+            line = [str(ts)]
+            # create #wcs many zeros
+            for i in range(0, len(wcs)):
+                if wcs[i] in wcs_counts:
+                    line.append(str(wcs_counts[wcs[i]]))
+                else:
+                    # if no entry is found, no requests were seen for this timestamp
+                    line.append("0")
+            writer.writerow(line)
+
+
+def count_dict(wc_ts_dict):
+    ret_dict = {}
+    for wc, ts_dict in wc_ts_dict.items():
+        for ts in ts_dict.keys():
+            ts = int(ts/TS_DIVISION_FACTOR)
+            if ts not in ret_dict:
+                ret_dict[ts] = {}
+            if wc not in ret_dict[ts]:
+                ret_dict[ts][wc] = 0
+            ret_dict[ts][wc] = ret_dict[ts][wc]+1
+    return ret_dict, list(wc_ts_dict.keys())
 
 
 # Exports a given request-list to a csv file
