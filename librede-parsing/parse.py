@@ -4,9 +4,11 @@ import pandas as pd
 import argparse
 from datetime import datetime
 import math
+import figures
 
 TS_DIVISION_FACTOR = 1000000000
 RT_DIVISION_FACTOR = 1000000
+ARRIVALS_FILE = "arrivals.csv"
 
 
 # Request storing all required info per request
@@ -71,7 +73,8 @@ def convert_requests(stub, filename, start_timestamp):
         outputname = os.path.join(stub, wc[0].wc)
         outputname = outputname + ".csv"
         export_requests(outputname, wc)
-    export_throughputs(os.path.join(stub, "arrivals.csv"), requests, len(requests))
+    export_throughputs(os.path.join(stub, ARRIVALS_FILE), requests)
+    figures.print_throughput_figure(os.path.join(stub, ARRIVALS_FILE))
 
 
 def convert_utilizations(stub, filename):
@@ -97,7 +100,7 @@ def convert_utilizations(stub, filename):
     return timestamp
 
 
-def export_throughputs(filename, requests, number_wcs):
+def export_throughputs(filename, requests):
     print("Exporting arrival rates to "+filename)
     wc_ts_dict = {}
     for wc, reqs in requests.items():
@@ -108,14 +111,27 @@ def export_throughputs(filename, requests, number_wcs):
         # write header
         header = ["Timestamps"]
         for i in range(0, len(wcs)):
-            header.append(wcs[i])
+            header.append(wcs[i]+"-absolute")
+        for i in range(0, len(wcs)):
+            header.append(wcs[i]+"-relative")
         writer.writerow(header)
-        for ts, wcs_counts in counts.items():
+        # go through the keyset in order
+        for ts in sorted(counts.keys()):
+            wcs_counts = counts[ts]
             line = [str(ts)]
-            # create #wcs many zeros
+            # create for each wc the absolute count
+            sum = 0
             for i in range(0, len(wcs)):
                 if wcs[i] in wcs_counts:
                     line.append(str(wcs_counts[wcs[i]]))
+                    sum = sum + wcs_counts[wcs[i]]
+                else:
+                    # if no entry is found, no requests were seen for this timestamp
+                    line.append("0")
+            # create for each wc the relative count
+            for i in range(0, len(wcs)):
+                if wcs[i] in wcs_counts:
+                    line.append(str(wcs_counts[wcs[i]]/sum))
                 else:
                     # if no entry is found, no requests were seen for this timestamp
                     line.append("0")
@@ -133,6 +149,8 @@ def count_dict(wc_ts_dict):
                 ret_dict[ts][wc] = 0
             ret_dict[ts][wc] = ret_dict[ts][wc]+1
     return ret_dict, list(wc_ts_dict.keys())
+
+
 
 
 # Exports a given request-list to a csv file
