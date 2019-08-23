@@ -23,10 +23,12 @@ end
 --]]
 function onCall(callnum)
 	branch = math.random(callnum)
-	branch = branch % 10000
-	if branch > 5000 then
+	if callnum > 2000 then
+		return nil
+	end
+	if branch > 500 then
 		return prefix.. "wc1"
-	elseif branch > 1000 then
+	elseif branch > 100 then
 		return prefix.. "wc2"
 	else
 		return prefix.. "wc3"
