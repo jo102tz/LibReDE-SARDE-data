@@ -10,5 +10,3 @@ def print_throughput_figure(file):
     plt.xlabel("Time [s]")
     plt.ylabel("Relative Share")
     plt.savefig(file+".pdf")
-
-print_throughput_figure("arrivals.csv")
