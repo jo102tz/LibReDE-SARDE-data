@@ -29,8 +29,8 @@ function onCall(callnum)
 	if branch > 500 then
 		return prefix.. "wc1"
 	elseif branch > 100 then
-		return prefix.. "wc2"
-	else
 		return prefix.. "wc3"
+	else
+		return prefix.. "wc2"
 	end
 end
