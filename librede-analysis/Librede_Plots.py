@@ -32,7 +32,7 @@ def get_real_error(estimate, real):
 def add_real_error(df, real_vector):
     error = []
     for index, line in df.iterrows():
-        if (line["Type"] == " ESTIMATION" or line["Type"] == " EVALUATION") and ("Error" not in line["Estimated Demand"]):
+        if (line["Type"] == " ESTIMATION" or line["Type"] == " EVALUATION" or line["Type"] == " OPTIMIZED_EVALUATION") and ("Error" not in line["Estimated Demand"]):
             ests = line["Estimated Demand"][3:-2].split(";")
             parsed = []
             for val in ests:
@@ -115,6 +115,34 @@ def print_err(logs, errorvec, filename):
     plt.plot(kumarKalmanFilter['Finish time'], pd.to_numeric(kumarKalmanFilter[errorvec])*100, linewidth=3, color=kumarKalmanFilterColor)
     responsetimeRegression = logs[(logs['Type'] == ' EVALUATION') & (logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeRegressionApproach')]
     plt.plot(responsetimeRegression['Finish time'], pd.to_numeric(responsetimeRegression[errorvec])*100, linewidth=3, color=responsetimeRegressionColor)
+
+    if len(logs[(logs['Type'] == ' OPTIMIZED_EVALUATION')]) > 0:
+        respApprox = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                    logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeApproximationApproach')]
+        plt.plot(respApprox['Finish time'], pd.to_numeric(respApprox[errorvec]) * 100, linewidth=3, linestyle='dashed',
+                 color=respApproxColor)
+        utilizationRegression = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                    logs['Selected Approach'] == ' tools.descartes.librede.approach.UtilizationRegressionApproach')]
+        plt.plot(utilizationRegression['Finish time'], pd.to_numeric(utilizationRegression[errorvec]) * 100, linestyle='dashed',
+                 linewidth=3, color=utilizationRegressionColor)
+        serviceDemandLaw = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                    logs['Selected Approach'] == ' tools.descartes.librede.approach.ServiceDemandLawApproach')]
+        plt.plot(serviceDemandLaw['Finish time'], pd.to_numeric(serviceDemandLaw[errorvec]) * 100, linewidth=3, linestyle='dashed',
+                 color=serviceDemandLawColor)
+        wangKalmanFilter = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                    logs['Selected Approach'] == ' tools.descartes.librede.approach.WangKalmanFilterApproach')]
+        plt.plot(wangKalmanFilter['Finish time'], pd.to_numeric(wangKalmanFilter[errorvec]) * 100, linewidth=3, linestyle='dashed',
+                 color=wangKalmanFilterColor)
+        kumarKalmanFilter = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                    logs['Selected Approach'] == ' tools.descartes.librede.approach.KumarKalmanFilterApproach')]
+        plt.plot(kumarKalmanFilter['Finish time'], pd.to_numeric(kumarKalmanFilter[errorvec]) * 100, linewidth=3, linestyle='dashed',
+                 color=kumarKalmanFilterColor)
+        responsetimeRegression = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                    logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeRegressionApproach')]
+        plt.plot(responsetimeRegression['Finish time'], pd.to_numeric(responsetimeRegression[errorvec]) * 100, linestyle='dashed',
+                 linewidth=3, color=responsetimeRegressionColor)
+
+
     # Legend
     colors = [estimationColor, recommendationColor, optimizationColor, trainingColor, estimationColor, respApproxColor, utilizationRegressionColor, serviceDemandLawColor, wangKalmanFilterColor, kumarKalmanFilterColor, responsetimeRegressionColor]
     lines = [plt.Line2D([0], [0], color=c, linewidth=3) for c in colors]

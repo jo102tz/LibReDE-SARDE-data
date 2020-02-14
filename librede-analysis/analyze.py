@@ -11,11 +11,15 @@ def extract_table(data):
             stats[row["Type"]] = []
         stats[row["Type"]].append(row["Time"])
 
-    print_table_row(stats[" ESTIMATION"], "Estimation")
-    print_table_row(stats[" OPTIMIZATION"], "Optimization")
-    print_table_row(stats[" RECOMMENDATION"], "Recommendation")
-    print_chosen_approaches_summary(data)
-    print_table_row(stats[" TRAINING"], "Training")
+    if " ESTIMATION" in stats:
+        print_table_row(stats[" ESTIMATION"], "Estimation")
+    if " OPTIMIZATION" in stats:
+        print_table_row(stats[" OPTIMIZATION"], "Optimization")
+    if " RECOMMENDATION" in stats:
+        print_table_row(stats[" RECOMMENDATION"], "Recommendation")
+        print_chosen_approaches_summary(data)
+    if " TRAINING" in stats:
+        print_table_row(stats[" TRAINING"], "Training")
 
 def print_chosen_approaches_summary(data):
     approaches = dict()
