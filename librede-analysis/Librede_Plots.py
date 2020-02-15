@@ -74,7 +74,6 @@ def print_err(logs, errorvec, filename):
     kumarKalmanFilterColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
     responsetimeRegressionColor= plt.gca()._get_lines.prop_cycler.__next__()['color']
 
-
     # Lines for events
     #for finishTime in estimations['Finish time']:
     #    plt.axvline(x=finishTime, color=estimationColor)
@@ -142,6 +141,11 @@ def print_err(logs, errorvec, filename):
         plt.plot(responsetimeRegression['Finish time'], pd.to_numeric(responsetimeRegression[errorvec]) * 100, linestyle='dashed',
                  linewidth=3, color=responsetimeRegressionColor)
 
+    # Plot estimation accuracy
+    plt.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=3,
+              color=estimationColor)
+    plt.xlabel("Time [min]")
+    plt.ylabel("Estimation Error [%]")
 
     # Legend
     colors = [estimationColor, recommendationColor, optimizationColor, trainingColor, estimationColor, respApproxColor, utilizationRegressionColor, serviceDemandLawColor, wangKalmanFilterColor, kumarKalmanFilterColor, responsetimeRegressionColor]
