@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import math
 import os
 import numpy as np
-import experiment_figures
+from librede_analysis import analyze
+from librede_analysis import experiment_figures
 
 name_mapping = {"RR" : ["ResponseTimeRegression"],
                 "SDL" : ["ServiceDemandLaw"],
@@ -190,12 +191,13 @@ def analyze_logbook(file="logbook.csv", folder=None, output=None):
 
 def create_paper_figures():
     # create data-anylsis figures
-    experiment_figures.print_absolute_requests(r"librede-parsing/arrivals.csv", r"librede-analysis/paperfigures/")
-    experiment_figures.print_utilization(r"librede-parsing/10.1.234.186.csv", r"librede-analysis/paperfigures/")
+    experiment_figures.print_absolute_requests(r"librede-parsing/arrivals.csv", r"librede_analysis/paperfigures/")
+    experiment_figures.print_utilization(r"librede-parsing/10.1.234.186.csv", r"librede_analysis/paperfigures/")
     # create all result figures
     dir = r"librede-analysis/logbooks/paper"
     for filename in os.listdir(dir):
-        analyze_logbook(filename, dir, r"librede-analysis/paperfigures")
+        analyze_logbook(filename, dir, r"librede_analysis/paperfigures")
+
         print(filename)
 
 
