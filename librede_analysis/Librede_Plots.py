@@ -190,15 +190,19 @@ def analyze_logbook(file="logbook.csv", folder=None, output=None):
     print_estimated_error(logs, skippedLogs, output + "\\"+name+"-figure_estimated-error.pdf")
 
 def create_paper_figures():
+    output = r"librede_analysis/paperfigures/"
     # create data-anylsis figures
-    experiment_figures.print_absolute_requests(r"librede-parsing/arrivals.csv", r"librede_analysis/paperfigures/")
-    experiment_figures.print_utilization(r"librede-parsing/10.1.234.186.csv", r"librede_analysis/paperfigures/")
+    experiment_figures.print_absolute_requests(r"librede-parsing/arrivals.csv", output)
+    experiment_figures.print_utilization(r"librede-parsing/10.1.234.186.csv", output)
     # create all result figures
-    dir = r"librede-analysis/logbooks/paper"
+    dir = r"librede_analysis/logbooks/paper"
     for filename in os.listdir(dir):
-        analyze_logbook(filename, dir, r"librede_analysis/paperfigures")
-
-        print(filename)
+        analyze_logbook(filename, dir, output)
+        #analyze.extract_table(pd.read_csv(dir + "\\" + filename))
+        analyze.extract_latex_timetable(filename, dir, output)
+        if filename == "recommendation.csv":
+            analyze.extract_latex_recommendation_statistics(filename, dir, output)
+        print("Finished ", filename)
 
 
 if __name__ == "__main__":

@@ -68,16 +68,66 @@ def extract_latex_timetable(file, folder, outfolder):
 
 
 def extract_latex_recommendation_statistics(file, folder, outfolder):
-    approaches = extract_chosen_approaches(pd.read_csv(folder + "\\" + file))
-    if len(approaches) > 0:
-        strbuffer = "Approach \t& Number of selections\\\\\\hline\n"
-        for name, value in approaches.items():
+    data = pd.read_csv(folder + "\\" + file)
+    qualitites = extract_reco_quality(data)
+    print(qualitites)
+    if len(qualitites) > 0:
+        strbuffer = "Approach \t& Number of selections \t& Average Rank\\\\\\hline\n"
+        for name, values in qualitites.items():
             if len(name) == 0:
                 name = "None "
-            strbuffer = strbuffer + "{0} \t& {1}\\\\\n".format(name[:-1], value)
+            strbuffer = strbuffer + "{0} \t& {1} \t& {2}\\\\\n".format(name[:-1], values[1], values[0])
         outfile = outfolder + file.split(".")[0]+"-reco-analysis.tex"
         with open(outfile, "w+") as f:
             f.write(strbuffer)
+
+def extract_reco_quality(data):
+    recommendations = []
+    dependents = []
+    for index, row in data.iterrows():
+        if row["Type"] == " EVALUATION":
+            dependents.append(row)
+        if row["Type"] == " RECOMMENDATION":
+            approach = row["Selected Approach"].split(".")[-1].replace(")", "")
+            time = row["Finish time"]
+            dependents = []
+            recommendations.append([time, approach, dependents])
+    for reco in recommendations:
+        best_of = get_best_of(reco[2])
+        # add rank
+        for i, el in enumerate(best_of):
+            if el[0] == reco[1]:
+                reco.append(i+1)
+    # combine into a comprehensible dict
+    result = {}
+    for reco in recommendations:
+        if reco[1] not in result:
+            result[reco[1]] = []
+        if len(reco) > 3:
+            result[reco[1]].append(reco[3])
+    overall = []
+    for i in result:
+        overall.extend(result[i])
+        result[i] = [np.mean(result[i]), len(result[i])]
+    result["Overall"] = [np.mean(overall), len(overall)]
+    return result
+
+
+def get_best_of(estimations):
+    approaches = {}
+    for est in estimations:
+        name = est["Selected Approach"].split(".")[-1]
+        if name not in approaches:
+            approaches[name] = []
+        approaches[name].append(get_error(est))
+    compresssed = []
+    for i in approaches:
+        compresssed.append([i, np.mean(approaches[i])])
+    return sorted(compresssed, key=lambda tup: tup[1])
+
+
+def get_error(est):
+    return float(est["Estimated Error"])
 
 
 #log = pd.read_csv("logbook.csv")
