@@ -4,7 +4,6 @@ import pandas as pd
 import argparse
 from datetime import datetime
 import math
-import figures
 
 TS_DIVISION_FACTOR = 1000000000
 RT_DIVISION_FACTOR = 1000000

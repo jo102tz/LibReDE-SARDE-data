@@ -1,7 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
+import os
 import numpy as np
+import experiment_figures
 
 name_mapping = {"RR" : ["ResponseTimeRegression"],
                 "SDL" : ["ServiceDemandLaw"],
@@ -51,7 +53,7 @@ def add_real_error(df, real_vector):
 
 
 
-def print_err(logs, errorvec, filename):
+def print_err(logs, skippedLogs, errorvec, filename):
      # Initialize figure
     plt.rcParams.update({'font.size': 22})
     plt.figure(figsize=(18,6))
@@ -158,28 +160,44 @@ def print_err(logs, errorvec, filename):
     # Finish up plot
     plt.tight_layout(pad=0.1)
     plt.savefig(filename)
-    plt.show()
+    #plt.show()
 
-def print_real_error(logs):
-    print_err(logs, "Real error", "figure_real-error.pdf")
+def print_real_error(logs, skippedLogs, file):
+    print_err(logs, skippedLogs, "Real error", file)
 
-def print_estimated_error(logs):
-    print_err(logs, "Estimated Error", "figure_estimated-error.pdf")
+def print_estimated_error(logs, skippedLogs, file):
+    print_err(logs, skippedLogs, "Estimated Error", file)
 
-# Read File
-logs = pd.read_csv("logbook.csv", index_col=False, delimiter=",")
-add_real_error(logs, real_vector=[0.01, 0.03, 0.005])
+def analyze_logbook(file="logbook.csv", folder=None, output=None):
+    # Read File
+    logs = pd.read_csv(folder + "\\" +file, index_col=False, delimiter=",")
+    add_real_error(logs, real_vector=[0.01, 0.03, 0.005])
 
-# Cleanup and adjust finish time to minutes
-logs = logs[~logs['Estimated Error'].str.contains("Error")]
-logs = logs[~logs['Estimated Error'].str.contains("Infinity")]
-logs["Estimated Error"] = pd.to_numeric(logs["Estimated Error"], errors="coerce")
-logs['Start time'] = logs['Finish time'] - logs['Time']
-logs['Finish time'] = (logs['Finish time'] - logs['Start time'].min())/1000/60
+    # Cleanup and adjust finish time to minutes
+    logs = logs[~logs['Estimated Error'].str.contains("Error")]
+    logs = logs[~logs['Estimated Error'].str.contains("Infinity")]
+    logs["Estimated Error"] = pd.to_numeric(logs["Estimated Error"], errors="coerce")
+    logs['Start time'] = logs['Finish time'] - logs['Time']
+    logs['Finish time'] = (logs['Finish time'] - logs['Start time'].min())/1000/60
 
-# Dump skipped events
-skippedLogs = logs[logs['Time'] == 0]
-logs = logs[~(logs['Time'] == 0)]
+    # Dump skipped events
+    skippedLogs = logs[logs['Time'] == 0]
+    logs = logs[~(logs['Time'] == 0)]
 
-print_real_error(logs)
-print_estimated_error(logs)
+    name = file.split(".")[0]
+    print_real_error(logs, skippedLogs, output + "\\" + name+"-figure_real-error.pdf")
+    print_estimated_error(logs, skippedLogs, output + "\\"+name+"-figure_estimated-error.pdf")
+
+def create_paper_figures():
+    # create data-anylsis figures
+    experiment_figures.print_absolute_requests(r"librede-parsing/arrivals.csv", r"librede-analysis/paperfigures/")
+    experiment_figures.print_utilization(r"librede-parsing/10.1.234.186.csv", r"librede-analysis/paperfigures/")
+    # create all result figures
+    dir = r"librede-analysis/logbooks/paper"
+    for filename in os.listdir(dir):
+        analyze_logbook(filename, dir, r"librede-analysis/paperfigures")
+        print(filename)
+
+
+if __name__ == "__main__":
+    create_paper_figures()
