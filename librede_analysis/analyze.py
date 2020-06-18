@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import math
 
 targets = [(" ESTIMATION", "Estimation"),
 (" OPTIMIZATION", "Optimization"),
@@ -76,7 +77,7 @@ def extract_latex_recommendation_statistics(file, folder, outfolder):
         for name, values in qualitites.items():
             if len(name) == 0:
                 name = "None "
-            strbuffer = strbuffer + "{0} \t& {1} \t& {2}\\\\\n".format(name[:-1], values[1], values[0])
+            strbuffer = strbuffer + "{0} \t& {1} \t& {2}\\\\\n".format(name, values[1], values[0])
         outfile = outfolder + file.split(".")[0]+"-reco-analysis.tex"
         with open(outfile, "w+") as f:
             f.write(strbuffer)
@@ -88,10 +89,13 @@ def extract_reco_quality(data):
         if row["Type"] == " EVALUATION":
             dependents.append(row)
         if row["Type"] == " RECOMMENDATION":
-            approach = row["Selected Approach"].split(".")[-1].replace(")", "")
+            approach = row["Selected Approach"]
+            if row["Selected Approach"] != " None.":
+                approach = approach.split(".")[-1].replace(")", "")
             time = row["Finish time"]
             dependents = []
             recommendations.append([time, approach, dependents])
+            print(time, approach)
     for reco in recommendations:
         best_of = get_best_of(reco[2])
         # add rank
@@ -105,11 +109,13 @@ def extract_reco_quality(data):
             result[reco[1]] = []
         if len(reco) > 3:
             result[reco[1]].append(reco[3])
+        else:
+            result[reco[1]].append(math.nan)
     overall = []
     for i in result:
         overall.extend(result[i])
         result[i] = [np.mean(result[i]), len(result[i])]
-    result["Overall"] = [np.mean(overall), len(overall)]
+    result["Overall "] = [np.nanmean(overall), (~np.isnan(overall)).sum()]
     return result
 
 
