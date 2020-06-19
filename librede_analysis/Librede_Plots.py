@@ -192,8 +192,7 @@ def analyze_logbook(file="logbook.csv", folder=None, output=None):
 def create_paper_figures():
     output = r"librede_analysis/paperfigures/"
     # create data-anylsis figures
-    experiment_figures.print_absolute_requests(r"librede-parsing/arrivals.csv", output)
-    experiment_figures.print_utilization(r"librede-parsing/10.1.234.186.csv", output)
+    experiment_figures.print_absolute_requests_with_util(r"librede-parsing/arrivals.csv", r"librede-parsing/10.1.234.186.csv", output)
     # create all result figures
     dir = r"librede_analysis/logbooks/paper"
     for filename in os.listdir(dir):

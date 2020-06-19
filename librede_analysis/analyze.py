@@ -58,7 +58,7 @@ def print_table_row(stats, name):
 def extract_latex_timetable(file, folder, outfolder):
     stats = extract_stats(pd.read_csv(folder + "\\" +file))
 
-    strbuffer = "Activity \t& Number of executions \t& Average execution time \t& Std of execution time \t& Total time spent executing\\\\\\hline\n"
+    strbuffer = "Activity \t& Number of executions \t& Average execution time (ms) \t& Std of execution time (ms) \t& Total time spent executing (ms)\\\\\\hline\n"
 
     for target in targets:
         if target[0] in stats:
@@ -74,15 +74,15 @@ def extract_latex_recommendation_statistics(file, folder, outfolder):
     data = pd.read_csv(folder + "\\" + file)
     approaches, chosen = extract_reco_quality(data)
     if len(approaches) > 0:
-        strbuffer = "Approach \t& Number of selections \t& Average Rank \t& Overall Rank \t& Overall Accuracy Loss\\\\\\hline\n"
+        strbuffer = "Approach \t& Average Rank \t& Accuracy Loss\\\\\\hline\n"
         for name, values in approaches.items():
             arr = np.asarray(values)[:, :-1]
             means = np.mean(arr.astype(np.float), axis=0)
-            strbuffer = strbuffer + "{0} \t& {1} \t& {2:.2f} \t& {3:.2f} \t& {4:.3f}\\\\\n".format(name, 0, 0, means[1], means[2])
+            strbuffer = strbuffer + "{0}\t& {1:.2f} \t& {2:.3f}\\\\\n".format(name, means[1], means[2])
         approach_means = np.mean(chosen, axis=0)
-        strbuffer = strbuffer + "\\hline{0} \t& {1} \t& {2:.2f} \t& {3:.2f} \t& {4:.3f}\\\\\n".format("Approach", 0, 0, approach_means[1], approach_means[2])
+        strbuffer = strbuffer + "\\hline {0} \t& {1:.2f} \t& {2:.3f}\\\\\n".format("Approach", approach_means[1], approach_means[2])
         random_means = np.mean(create_random(approaches), axis=0)
-        strbuffer = strbuffer + "{0} \t& {1} \t& {2:.2f} \t& {3:.2f} \t& {4:.3f}\\\\\n".format("Random", 0, 0, random_means[1], random_means[2])
+        strbuffer = strbuffer + "{0} \t& {1:.2f} \t& {2:.3f}\\\\\n".format("Random", random_means[1], random_means[2])
         outfile = outfolder + file.split(".")[0]+"-reco-analysis.tex"
         with open(outfile, "w+") as f:
             f.write(strbuffer)
