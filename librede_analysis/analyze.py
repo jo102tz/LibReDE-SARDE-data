@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import math
+import random
+from collections import defaultdict
 
 targets = [(" ESTIMATION", "Estimation"),
 (" OPTIMIZATION", "Optimization"),
@@ -70,17 +72,33 @@ def extract_latex_timetable(file, folder, outfolder):
 
 def extract_latex_recommendation_statistics(file, folder, outfolder):
     data = pd.read_csv(folder + "\\" + file)
-    qualitites = extract_reco_quality(data)
-    print(qualitites)
-    if len(qualitites) > 0:
-        strbuffer = "Approach \t& Number of selections \t& Average Rank\\\\\\hline\n"
-        for name, values in qualitites.items():
-            if len(name) == 0:
-                name = "None "
-            strbuffer = strbuffer + "{0} \t& {1} \t& {2}\\\\\n".format(name, values[1], values[0])
+    approaches, chosen = extract_reco_quality(data)
+    if len(approaches) > 0:
+        strbuffer = "Approach \t& Number of selections \t& Average Rank \t& Overall Rank \t& Overall Accuracy Loss\\\\\\hline\n"
+        for name, values in approaches.items():
+            arr = np.asarray(values)[:, :-1]
+            means = np.mean(arr.astype(np.float), axis=0)
+            strbuffer = strbuffer + "{0} \t& {1} \t& {2:.2f} \t& {3:.2f} \t& {4:.3f}\\\\\n".format(name, 0, 0, means[1], means[2])
+        approach_means = np.mean(chosen, axis=0)
+        strbuffer = strbuffer + "\\hline{0} \t& {1} \t& {2:.2f} \t& {3:.2f} \t& {4:.3f}\\\\\n".format("Approach", 0, 0, approach_means[1], approach_means[2])
+        random_means = np.mean(create_random(approaches), axis=0)
+        strbuffer = strbuffer + "{0} \t& {1} \t& {2:.2f} \t& {3:.2f} \t& {4:.3f}\\\\\n".format("Random", 0, 0, random_means[1], random_means[2])
         outfile = outfolder + file.split(".")[0]+"-reco-analysis.tex"
         with open(outfile, "w+") as f:
             f.write(strbuffer)
+
+
+def create_random(approaches):
+    random.seed(42)
+    chosen = []
+    for i, value in enumerate(next(iter(approaches.values()))):
+        timestamp = value[0]
+        approach = random.choice(list(approaches.values()))
+        rank = approach[i][1]
+        accuracy = approach[i][2]
+        chosen.append([timestamp, rank, accuracy])
+    return chosen
+
 
 def extract_reco_quality(data):
     recommendations = []
@@ -95,28 +113,47 @@ def extract_reco_quality(data):
             time = row["Finish time"]
             dependents = []
             recommendations.append([time, approach, dependents])
-            print(time, approach)
-    for reco in recommendations:
-        best_of = get_best_of(reco[2])
-        # add rank
-        for i, el in enumerate(best_of):
-            if el[0] == reco[1]:
-                reco.append(i+1)
-    # combine into a comprehensible dict
-    result = {}
-    for reco in recommendations:
-        if reco[1] not in result:
-            result[reco[1]] = []
-        if len(reco) > 3:
-            result[reco[1]].append(reco[3])
-        else:
-            result[reco[1]].append(math.nan)
-    overall = []
-    for i in result:
-        overall.extend(result[i])
-        result[i] = [np.mean(result[i]), len(result[i])]
-    result["Overall "] = [np.nanmean(overall), (~np.isnan(overall)).sum()]
-    return result
+    algo_performances = get_algo_performances(recommendations)
+    approach = []
+    for key, value in algo_performances.items():
+        for row in value:
+            if row[3] == key:
+                rank = row[1]
+                accuracy = row[2]
+                timestamp = row[0]
+                approach.append([timestamp, rank, accuracy])
+    return algo_performances, approach
+    # for reco in recommendations:
+    #     best_of = get_best_of(reco[2])
+    #     # add rank
+    #     for i, el in enumerate(best_of):
+    #         if el[0] == reco[1]:
+    #             reco.append(i+1)
+    # # combine into a comprehensible dict
+    # result = {}
+    # for reco in recommendations:
+    #     if reco[1] not in result:
+    #         result[reco[1]] = []
+    #     if len(reco) > 3:
+    #         result[reco[1]].append(reco[3])
+    #     else:
+    #         result[reco[1]].append(math.nan)
+    # overall = []
+    # for i in result:
+    #     overall.extend(result[i])
+    #     result[i] = [np.mean(result[i]), len(result[i])]
+    # result["Overall "] = [np.nanmean(overall), (~np.isnan(overall)).sum()]
+    # return result
+
+
+def get_algo_performances(intervals):
+    approaches = defaultdict(list)
+    for i, val in enumerate(intervals):
+        sorted = get_best_of(val[2])
+        for i, el in enumerate(sorted):
+            approaches[el[0]].append([val[0], int(i+1), el[1]-sorted[0][1], val[1]])
+    return approaches
+
 
 
 def get_best_of(estimations):
