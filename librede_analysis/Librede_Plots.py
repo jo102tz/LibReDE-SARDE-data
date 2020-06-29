@@ -7,20 +7,21 @@ from librede_analysis import analyze
 from librede_analysis import experiment_figures
 
 name_mapping = {"RR" : ["ResponseTimeRegression"],
-                "SDL" : ["ServiceDemandLaw"],
+                "SD" : ["ServiceDemandLaw"],
                 "UR" : ["UtilizationRegression"],
                 "MO" : ["MenasceOptimization"],
                 "LO": ["LiuOptimization"],
-                "RTA":["ResponseTimeApprox"],
-                "WKF" :["WangKalmanFilter"],
-                "KKF": ["KumarKalmanFilter"]}
+                "RT":["ResponseTimeApprox"],
+                "WF" :["WangKalmanFilter"],
+                "KF": ["KumarKalmanFilter"]}
 
 def get_approach_short(long_name):
     for key, value in name_mapping.items():
         for name in value:
             if name in long_name:
                 return key
-    return long_name
+    # If no approach known, return SD as default
+    return "SD"
 
 def get_real_error(estimate, real):
     if any(np.isinf(estimate)) or any(np.isnan(estimate)):
@@ -82,19 +83,18 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
     fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, gridspec_kw={'height_ratios': [1, 5]}, figsize=(18, 6))
     # plt.subplots_adjust(left=0.06, bottom=0.13, right=0.98, top=1.00)
 
+    minwidth = 8
     # Lines for events
     for finishTime, time in zip(estimations['Finish time'], estimations["Start time"]):
-        print(time)
-        print(finishTime)
-        ax1.hlines(y=0, xmin=time, xmax=finishTime, color=estimationColor)
+        ax1.hlines(y=1, xmin=time, xmax=max(finishTime, time+minwidth), color=estimationColor, linewidth=8)
     for finishTime, time, approach in zip(recommendations['Finish time'], recommendations["Start time"], recommendations['Selected Approach']):
         # print(finishTime)
-        ax1.hlines(y=1, xmin=time, xmax=finishTime, color=recommendationColor)
-        ax1.text(x=finishTime, y=0, s=get_approach_short(approach), color=recommendationColor, fontsize=10)
-    for finishTime, time in zip(optimizations['Finish time'], optimizations["Start time"]):
-        ax1.hlines(y=2, xmin=time, xmax=finishTime, color=optimizationColor)
+        ax1.hlines(y=2, xmin=time, xmax=max(finishTime, time+minwidth), color=recommendationColor, linewidth=8)
+        ax1.text(x=finishTime+30, y=1.8, s=get_approach_short(approach), color=recommendationColor, fontsize=10)
     for finishTime, time in zip(trainings['Finish time'], trainings["Start time"]):
-        ax1.hlines(y=3, xmin=time, xmax=finishTime, color=trainingColor)
+        ax1.hlines(y=3, xmin=time, xmax=max(finishTime, time+minwidth), color=trainingColor, linewidth=8)
+    for finishTime, time in zip(optimizations['Finish time'], optimizations["Start time"]):
+        ax1.hlines(y=4, xmin=time, xmax=max(finishTime, time+minwidth), color=optimizationColor, linewidth=8)
 
     # Lines for events
     # for finishTime in estimations['Finish time']:
@@ -121,11 +121,13 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
     #ax1.set_axis_off()
     #ax1.set_frame_on(True)
     ax1.set_xlim(xmin=0, xmax=10800)
+    ax1.set_ylim(ymin=0.5, ymax=4.5)
     #ax1.tick_params(axis='both', which='both', bottom='off', top='off', labelbottom='off', right='off', left='off',
     #                labelleft='off')
-    ax1.set_yticklabels([])
+    ax1.set_yticks(ticks=[1,2,3,4])
+    ax1.set_yticklabels(["EST", "REC", "TRA", "OPT"])
     ax1.set_xticklabels([])
-    ax1.legend(timelines, ['Estimation', 'Recommendation', 'Optimization', 'Training'], ncol=4)
+    #ax1.legend(timelines, ['Estimation', 'Recommendation', 'Optimization', 'Training'], ncol=4)
     #ax1.set_xlabel("Time [min]")
     #ax1.set_ylabel("Estimation Error [%]")
 
@@ -195,6 +197,7 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
     ax2.set_xlabel("Time [min]")
     ax2.set_ylabel("Estimation Error [%]")
     ax2.set_xlim(xmin=0, xmax=10800)
+    ax2.set_yticks([0,20,40,60,80])
     ax2.set_ylim(ymin=0, ymax=100)
 
     # Legend
