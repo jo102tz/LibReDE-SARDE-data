@@ -52,7 +52,6 @@ def print_absolute_requests_with_util(tpsfile, utilfile, outputfolder=None):
     plt.savefig(outputfolder + filename + "-absolute.pdf")
     plt.close()
 
-
 def print_utilization(file, outputfolder=None):
     util = pd.read_csv(file, delimiter=",", names=["TS", "Util"])
     minTS = min(util["TS"])

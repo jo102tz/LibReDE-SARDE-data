@@ -52,6 +52,160 @@ def add_real_error(df, real_vector):
             error.append("-1")
     df["Real error"] = error
 
+def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
+
+    # Color and dataprep
+    estimations = logs[logs['Type'] == ' ESTIMATION']
+    estimations = estimations[estimations['Type'] == ' ESTIMATION']
+    estimationColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    recommendationColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    recommendations = logs[logs['Type'] == ' RECOMMENDATION']
+    optimizationColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    optimizations = logs[logs['Type'] == ' OPTIMIZATION']
+    trainingColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    trainings = logs[logs['Type'] == ' TRAINING']
+    respApproxColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    utilizationRegressionColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    serviceDemandLawColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    wangKalmanFilterColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    kumarKalmanFilterColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    responsetimeRegressionColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+    timecolors = [estimationColor, recommendationColor, optimizationColor, trainingColor]
+    colors = [estimationColor, respApproxColor,
+              utilizationRegressionColor, serviceDemandLawColor, wangKalmanFilterColor, kumarKalmanFilterColor,
+              responsetimeRegressionColor]
+    timelines = [plt.Line2D([0], [0], color=c, linewidth=3) for c in timecolors]
+    lines = [plt.Line2D([0], [0], color=c, linewidth=3) for c in colors]
+
+    # Initialize figure
+    plt.rcParams.update({'font.size': 14})
+    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, gridspec_kw={'height_ratios': [1, 5]}, figsize=(18, 6))
+    # plt.subplots_adjust(left=0.06, bottom=0.13, right=0.98, top=1.00)
+
+    # Lines for events
+    for finishTime, time in zip(estimations['Finish time'], estimations["Start time"]):
+        print(time)
+        print(finishTime)
+        ax1.hlines(y=0, xmin=time, xmax=finishTime, color=estimationColor)
+    for finishTime, time, approach in zip(recommendations['Finish time'], recommendations["Start time"], recommendations['Selected Approach']):
+        # print(finishTime)
+        ax1.hlines(y=1, xmin=time, xmax=finishTime, color=recommendationColor)
+        ax1.text(x=finishTime, y=0, s=get_approach_short(approach), color=recommendationColor, fontsize=10)
+    for finishTime, time in zip(optimizations['Finish time'], optimizations["Start time"]):
+        ax1.hlines(y=2, xmin=time, xmax=finishTime, color=optimizationColor)
+    for finishTime, time in zip(trainings['Finish time'], trainings["Start time"]):
+        ax1.hlines(y=3, xmin=time, xmax=finishTime, color=trainingColor)
+
+    # Lines for events
+    # for finishTime in estimations['Finish time']:
+    #    plt.axvline(x=finishTime, color=estimationColor)
+    # for finishTime, approach in zip(recommendations['Finish time'], recommendations['Selected Approach']):
+    #     # print(finishTime)
+    #     ax1.axvline(x=finishTime, color=recommendationColor)
+    #     ax1.text(x=finishTime, y=0, s=get_approach_short(approach), color=recommendationColor, fontsize=10)
+    # for finishTime in optimizations['Finish time']:
+    #     ax1.axvline(x=finishTime, color=optimizationColor)
+    # for finishTime in trainings['Finish time']:
+    #     ax1.axvline(x=finishTime, color=trainingColor)
+    #
+    # # dashed lines for skipped events
+    # for finishTime in (skippedLogs[skippedLogs['Type'] == ' ESTIMATION']['Finish time']):
+    #     ax1.axvline(x=finishTime, color=estimationColor, linestyle='dashed')
+    # for finishTime in (skippedLogs[skippedLogs['Type'] == ' RECOMMENDATION']['Finish time']):
+    #     ax1.axvline(x=finishTime, color=recommendationColor, linestyle='dashed')
+    # for finishTime in (skippedLogs[skippedLogs['Type'] == ' OPTIMIZATION']['Finish time']):
+    #     ax1.axvline(x=finishTime, color=optimizationColor, linestyle='dashed')
+    # for finishTime in (skippedLogs[skippedLogs['Type'] == ' TRAINING']['Finish time']):
+    #     ax1.axvline(x=finishTime, color=trainingColor, linestyle='dashed')
+
+    #ax1.set_axis_off()
+    #ax1.set_frame_on(True)
+    ax1.set_xlim(xmin=0, xmax=10800)
+    #ax1.tick_params(axis='both', which='both', bottom='off', top='off', labelbottom='off', right='off', left='off',
+    #                labelleft='off')
+    ax1.set_yticklabels([])
+    ax1.set_xticklabels([])
+    ax1.legend(timelines, ['Estimation', 'Recommendation', 'Optimization', 'Training'], ncol=4)
+    #ax1.set_xlabel("Time [min]")
+    #ax1.set_ylabel("Estimation Error [%]")
+
+    # Plot estimation accuracy
+    plotwidth=2
+    ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth, color=estimationColor)
+
+    # Plot evaluation
+    respApprox = logs[(logs['Type'] == ' EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeApproximationApproach')]
+    ax2.plot(respApprox['Finish time'], pd.to_numeric(respApprox[errorvec]) * 100, linewidth=plotwidth, color=respApproxColor)
+    utilizationRegression = logs[(logs['Type'] == ' EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.UtilizationRegressionApproach')]
+    ax2.plot(utilizationRegression['Finish time'], pd.to_numeric(utilizationRegression[errorvec]) * 100, linewidth=plotwidth,
+             color=utilizationRegressionColor)
+    serviceDemandLaw = logs[(logs['Type'] == ' EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.ServiceDemandLawApproach')]
+    ax2.plot(serviceDemandLaw['Finish time'], pd.to_numeric(serviceDemandLaw[errorvec]) * 100, linewidth=plotwidth,
+             color=serviceDemandLawColor)
+    wangKalmanFilter = logs[(logs['Type'] == ' EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.WangKalmanFilterApproach')]
+    ax2.plot(wangKalmanFilter['Finish time'], pd.to_numeric(wangKalmanFilter[errorvec]) * 100, linewidth=plotwidth,
+             color=wangKalmanFilterColor)
+    kumarKalmanFilter = logs[(logs['Type'] == ' EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.KumarKalmanFilterApproach')]
+    ax2.plot(kumarKalmanFilter['Finish time'], pd.to_numeric(kumarKalmanFilter[errorvec]) * 100, linewidth=plotwidth,
+             color=kumarKalmanFilterColor)
+    responsetimeRegression = logs[(logs['Type'] == ' EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeRegressionApproach')]
+    ax2.plot(responsetimeRegression['Finish time'], pd.to_numeric(responsetimeRegression[errorvec]) * 100, linewidth=plotwidth,
+             color=responsetimeRegressionColor)
+
+    if len(logs[(logs['Type'] == ' OPTIMIZED_EVALUATION')]) > 0:
+        respApprox = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeApproximationApproach')]
+        ax2.plot(respApprox['Finish time'], pd.to_numeric(respApprox[errorvec]) * 100, linewidth=plotwidth, linestyle='dotted',
+                 color=respApproxColor)
+        utilizationRegression = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.UtilizationRegressionApproach')]
+        ax2.plot(utilizationRegression['Finish time'], pd.to_numeric(utilizationRegression[errorvec]) * 100,
+                 linestyle='dotted',
+                 linewidth=plotwidth, color=utilizationRegressionColor)
+        serviceDemandLaw = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.ServiceDemandLawApproach')]
+        ax2.plot(serviceDemandLaw['Finish time'], pd.to_numeric(serviceDemandLaw[errorvec]) * 100, linewidth=plotwidth,
+                 linestyle='dotted',
+                 color=serviceDemandLawColor)
+        wangKalmanFilter = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.WangKalmanFilterApproach')]
+        ax2.plot(wangKalmanFilter['Finish time'], pd.to_numeric(wangKalmanFilter[errorvec]) * 100, linewidth=plotwidth,
+                 linestyle='dotted',
+                 color=wangKalmanFilterColor)
+        kumarKalmanFilter = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.KumarKalmanFilterApproach')]
+        ax2.plot(kumarKalmanFilter['Finish time'], pd.to_numeric(kumarKalmanFilter[errorvec]) * 100, linewidth=plotwidth,
+                 linestyle='dotted',
+                 color=kumarKalmanFilterColor)
+        responsetimeRegression = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
+                logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeRegressionApproach')]
+        ax2.plot(responsetimeRegression['Finish time'], pd.to_numeric(responsetimeRegression[errorvec]) * 100,
+                 linestyle='dotted',
+                 linewidth=plotwidth, color=responsetimeRegressionColor)
+
+    # Plot estimation accuracy
+    ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth,
+             color=estimationColor)
+    ax2.set_xlabel("Time [min]")
+    ax2.set_ylabel("Estimation Error [%]")
+    ax2.set_xlim(xmin=0, xmax=10800)
+    ax2.set_ylim(ymin=0, ymax=100)
+
+    # Legend
+    ax2.legend(lines, ['SARDE','ResponsetimeApproximation', 'UtilizationRegression', 'ServiceDemandLaw', 'WangKalmanFilter',
+                      'KumarKalmanFilter', 'ResponsetimeRegression'], ncol=4, loc="upper right")
+
+    # plt.xlim(0, 180)
+    # Finish up plot
+    fig.tight_layout(pad=0.1)
+    fig.savefig(filename)
+    # plt.show()
 
 
 def print_err(logs, skippedLogs, errorvec, filename):
@@ -163,12 +317,6 @@ def print_err(logs, skippedLogs, errorvec, filename):
     plt.savefig(filename)
     #plt.show()
 
-def print_real_error(logs, skippedLogs, file):
-    print_err(logs, skippedLogs, "Real error", file)
-
-def print_estimated_error(logs, skippedLogs, file):
-    print_err(logs, skippedLogs, "Estimated Error", file)
-
 def analyze_logbook(file="logbook.csv", folder=None, output=None):
     # Read File
     logs = pd.read_csv(folder + "\\" +file, index_col=False, delimiter=",")
@@ -178,16 +326,19 @@ def analyze_logbook(file="logbook.csv", folder=None, output=None):
     logs = logs[~logs['Estimated Error'].str.contains("Error")]
     logs = logs[~logs['Estimated Error'].str.contains("Infinity")]
     logs["Estimated Error"] = pd.to_numeric(logs["Estimated Error"], errors="coerce")
-    logs['Start time'] = logs['Finish time'] - logs['Time']
-    logs['Finish time'] = (logs['Finish time'] - logs['Start time'].min())/1000/60
+    logs['Start time'] = (logs['Finish time'] - logs['Time'])/1000
+    logs['Finish time'] = (logs['Finish time'])/1000 - logs['Start time'].min()
+    logs['Start time'] = logs['Start time'] - logs['Start time'].min()
 
     # Dump skipped events
     skippedLogs = logs[logs['Time'] == 0]
     logs = logs[~(logs['Time'] == 0)]
 
     name = file.split(".")[0]
-    print_real_error(logs, skippedLogs, output + "\\" + name+"-figure_real-error.pdf")
-    print_estimated_error(logs, skippedLogs, output + "\\"+name+"-figure_estimated-error.pdf")
+    # plot real error
+    plot_double_error_fig(logs, skippedLogs, "Real error", output + "\\" + name+"-figure_real-error.pdf")
+    # plot estimated error
+    plot_double_error_fig(logs, skippedLogs, "Estimated Error", output + "\\"+name+"-figure_estimated-error.pdf")
 
 def create_paper_figures():
     output = r"librede_analysis/paperfigures/"
