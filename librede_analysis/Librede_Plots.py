@@ -71,10 +71,11 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
     wangKalmanFilterColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
     kumarKalmanFilterColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
     responsetimeRegressionColor = plt.gca()._get_lines.prop_cycler.__next__()['color']
+
     timecolors = [estimationColor, recommendationColor, optimizationColor, trainingColor]
-    colors = [estimationColor, respApproxColor,
+    colors = [respApproxColor,
               utilizationRegressionColor, serviceDemandLawColor, wangKalmanFilterColor, kumarKalmanFilterColor,
-              responsetimeRegressionColor]
+              responsetimeRegressionColor, estimationColor]
     timelines = [plt.Line2D([0], [0], color=c, linewidth=3) for c in timecolors]
     lines = [plt.Line2D([0], [0], color=c, linewidth=3) for c in colors]
 
@@ -125,7 +126,7 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
     #ax1.tick_params(axis='both', which='both', bottom='off', top='off', labelbottom='off', right='off', left='off',
     #                labelleft='off')
     ax1.set_yticks(ticks=[1,2,3,4])
-    ax1.set_yticklabels(["EST", "REC", "TRA", "OPT"])
+    ax1.set_yticklabels(["Est", "Rec", "Tra", "Opt"])
     ax1.set_xticklabels([])
     #ax1.legend(timelines, ['Estimation', 'Recommendation', 'Optimization', 'Training'], ncol=4)
     #ax1.set_xlabel("Time [min]")
@@ -133,7 +134,6 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
 
     # Plot estimation accuracy
     plotwidth=2
-    ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth, color=estimationColor)
 
     # Plot evaluation
     respApprox = logs[(logs['Type'] == ' EVALUATION') & (
@@ -159,6 +159,8 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
                 logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeRegressionApproach')]
     ax2.plot(responsetimeRegression['Finish time'], pd.to_numeric(responsetimeRegression[errorvec]) * 100, linewidth=plotwidth,
              color=responsetimeRegressionColor)
+
+    ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth, color=estimationColor)
 
     if len(logs[(logs['Type'] == ' OPTIMIZED_EVALUATION')]) > 0:
         respApprox = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
@@ -194,15 +196,15 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
     # Plot estimation accuracy
     ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth,
              color=estimationColor)
-    ax2.set_xlabel("Time [min]")
+    ax2.set_xlabel("Time [s]")
     ax2.set_ylabel("Estimation Error [%]")
     ax2.set_xlim(xmin=0, xmax=10800)
     ax2.set_yticks([0,20,40,60,80])
     ax2.set_ylim(ymin=0, ymax=100)
 
     # Legend
-    ax2.legend(lines, ['SARDE','ResponsetimeApproximation', 'UtilizationRegression', 'ServiceDemandLaw', 'WangKalmanFilter',
-                      'KumarKalmanFilter', 'ResponsetimeRegression'], ncol=4, loc="upper right")
+    ax2.legend(lines, ['ResponsetimeApproximation', 'UtilizationRegression', 'ServiceDemandLaw', 'WangKalmanFilter',
+                      'KumarKalmanFilter', 'ResponsetimeRegression', 'SARDE'], ncol=4, loc="upper right")
 
     # plt.xlim(0, 180)
     # Finish up plot
@@ -258,7 +260,7 @@ def print_err(logs, skippedLogs, errorvec, filename):
 
     # Plot estimation accuracy
     plt.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec])*100, linewidth=3, color=estimationColor)
-    plt.xlabel("Time [min]")
+    plt.xlabel("Time [s]")
     plt.ylabel("Estimation Error [%]")
 
     # Plot evaluation

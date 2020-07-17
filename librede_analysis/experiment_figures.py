@@ -45,7 +45,7 @@ def print_absolute_requests_with_util(tpsfile, utilfile, outputfolder=None):
     ax2.plot(util["TS"] - minTS, savgol_filter(util["Util"], 51, 3), color="black")
     ax2.tick_params(axis='y', labelcolor="black")
 
-    fig.legend(["WC1", "WC2", "WC3", "Utilization"], loc="upper right")
+    fig.legend(["WC1", "WC2", "WC3", "Utilization"], loc="upper right", bbox_to_anchor=(0.85,0.95))
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
 
     filename = tpsfile.split("/")[-1].split(".")[0]
