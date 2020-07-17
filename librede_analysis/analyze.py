@@ -74,15 +74,15 @@ def extract_latex_recommendation_statistics(file, folder, outfolder):
     data = pd.read_csv(folder + "\\" + file)
     approaches, chosen = extract_reco_quality(data)
     if len(approaches) > 0:
-        strbuffer = "Approach \t& Average Rank \t& Accuracy Loss\\\\\\hline\n"
+        strbuffer = "Approach \t& Average Rank \t& Accuracy Loss (in \\%) \\\\\\hline\n"
         for name, values in approaches.items():
             arr = np.asarray(values)[:, :-1]
             means = np.mean(arr.astype(np.float), axis=0)
-            strbuffer = strbuffer + "{0}\t& {1:.2f} \t& {2:.3f}\\\\\n".format(name, means[1], means[2])
+            strbuffer = strbuffer + "{0}\t& {1:.2f} \t& {2:.2f}\\\\\n".format(name, means[1], means[2]*100)
         approach_means = np.mean(chosen, axis=0)
-        strbuffer = strbuffer + "\\hline {0} \t& {1:.2f} \t& {2:.3f}\\\\\n".format("Approach", approach_means[1], approach_means[2])
+        strbuffer = strbuffer + "\\hline {0} \t& {1:.2f} \t& {2:.2f}\\\\\n".format("Approach", approach_means[1], approach_means[2]*100)
         random_means = np.mean(create_random(approaches), axis=0)
-        strbuffer = strbuffer + "{0} \t& {1:.2f} \t& {2:.3f}\\\\\n".format("Random", random_means[1], random_means[2])
+        strbuffer = strbuffer + "{0} \t& {1:.2f} \t& {2:.2f}\\\\\n".format("Random", random_means[1], random_means[2]*100)
         outfile = outfolder + file.split(".")[0]+"-reco-analysis.tex"
         with open(outfile, "w+") as f:
             f.write(strbuffer)
