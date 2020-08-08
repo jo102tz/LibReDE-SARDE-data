@@ -53,7 +53,7 @@ def add_real_error(df, real_vector):
             error.append("-1")
     df["Real error"] = error
 
-def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
+def plot_double_error_fig(logs, skippedLogs, errorvec, filename, plot_estimation, plot_optimized):
 
     # Color and dataprep
     estimations = logs[logs['Type'] == ' ESTIMATION']
@@ -162,7 +162,7 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
 
     ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth, color=estimationColor)
 
-    if len(logs[(logs['Type'] == ' OPTIMIZED_EVALUATION')]) > 0:
+    if len(logs[(logs['Type'] == ' OPTIMIZED_EVALUATION')]) > 0 and plot_optimized is True:
         respApprox = logs[(logs['Type'] == ' OPTIMIZED_EVALUATION') & (
                 logs['Selected Approach'] == ' tools.descartes.librede.approach.ResponseTimeApproximationApproach')]
         ax2.plot(respApprox['Finish time'], pd.to_numeric(respApprox[errorvec]) * 100, linewidth=plotwidth, linestyle='dotted',
@@ -194,7 +194,8 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
                  linewidth=plotwidth, color=responsetimeRegressionColor)
 
     # Plot estimation accuracy
-    ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth,
+    if plot_estimation is True:
+        ax2.plot(estimations['Finish time'], pd.to_numeric(estimations[errorvec]) * 100, linewidth=plotwidth,
              color=estimationColor)
     ax2.set_xlabel("Time [s]")
     ax2.set_ylabel("Estimation Error [%]")
@@ -203,8 +204,16 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename):
     ax2.set_ylim(ymin=0, ymax=100)
 
     # Legend
-    ax2.legend(lines, ['ResponsetimeApproximation', 'UtilizationRegression', 'ServiceDemandLaw', 'WangKalmanFilter',
-                      'KumarKalmanFilter', 'ResponsetimeRegression', 'SARDE'], ncol=4, loc="upper right")
+    if plot_estimation is True:
+        names = ['ResponsetimeApproximation', 'UtilizationRegression', 'ServiceDemandLaw', 'WangKalmanFilter',
+                      'KumarKalmanFilter', 'ResponsetimeRegression', 'SARDE']
+        ncols = 4
+
+    else:
+        names = ['ResponsetimeApproximation', 'UtilizationRegression', 'ServiceDemandLaw', 'WangKalmanFilter',
+                 'KumarKalmanFilter', 'ResponsetimeRegression']
+        ncols = 3
+    ax2.legend(lines, names, ncol=ncols, loc="upper right")
 
     # plt.xlim(0, 180)
     # Finish up plot
@@ -322,7 +331,7 @@ def print_err(logs, skippedLogs, errorvec, filename):
     plt.savefig(filename)
     #plt.show()
 
-def analyze_logbook(file="logbook.csv", folder=None, output=None):
+def analyze_logbook(file="logbook.csv", folder=None, output=None, print_estimation=True, print_optimizations=True):
     # Read File
     logs = pd.read_csv(folder + "\\" +file, index_col=False, delimiter=",")
     add_real_error(logs, real_vector=[0.01, 0.03, 0.005])
@@ -341,9 +350,9 @@ def analyze_logbook(file="logbook.csv", folder=None, output=None):
 
     name = file.split(".")[0]
     # plot real error
-    plot_double_error_fig(logs, skippedLogs, "Real error", output + "\\" + name+"-figure_real-error.pdf")
+    plot_double_error_fig(logs, skippedLogs, "Real error", output + "\\" + name+"-figure_real-error.pdf", print_estimation, print_optimizations)
     # plot estimated error
-    plot_double_error_fig(logs, skippedLogs, "Estimated Error", output + "\\"+name+"-figure_estimated-error.pdf")
+    plot_double_error_fig(logs, skippedLogs, "Estimated Error", output + "\\"+name+"-figure_estimated-error.pdf", print_estimation, print_optimizations)
 
 def create_paper_figures():
     output = r"librede_analysis/paperfigures/"
@@ -352,11 +361,15 @@ def create_paper_figures():
     # create all result figures
     dir = r"librede_analysis/logbooks/paper"
     for filename in os.listdir(dir):
-        analyze_logbook(filename, dir, output)
         #analyze.extract_table(pd.read_csv(dir + "\\" + filename))
         analyze.extract_latex_timetable(filename, dir, output)
         if filename == "recommendation.csv":
             analyze.extract_latex_recommendation_statistics(filename, dir, output)
+            analyze_logbook(filename, dir, output, print_estimation=True, print_optimizations=False)
+        if filename == "optimization.csv":
+            analyze_logbook(filename, dir, output, print_estimation=False, print_optimizations=True)
+        if filename == "combined.csv":
+            analyze_logbook(filename, dir, output, print_estimation=True, print_optimizations=False)
         print("Finished ", filename)
 
 
