@@ -58,12 +58,12 @@ def print_table_row(stats, name):
 def extract_latex_timetable(file, folder, outfolder):
     stats = extract_stats(pd.read_csv(folder + "\\" +file))
 
-    strbuffer = "Activity \t& Number of executions \t& Average execution time (ms) \t& Std of execution time (ms) \t& Total time spent executing (ms)\\\\\\hline\n"
+    strbuffer = "Activity \t& Number of executions \t& Average execution time (s) \t& Std (s) \t& Total time spent executing (s)\\\\\\hline\n"
 
     for target in targets:
         if target[0] in stats:
             values = stats[target[0]]
-            strbuffer = strbuffer + "{0}\t&{1:}\t&{2:.1f}\t&{3:.1f}\t&{4}\\\\\n".format(target[1], len(values), np.mean(values), np.std(values), np.sum(values))
+            strbuffer = strbuffer + "{0}\t&{1:}\t&{2:.1f}\t&{3:.1f}\t&{4:.1f}\\\\\n".format(target[1], len(values), np.mean(values)/1000, np.std(values)/1000, np.sum(values)/1000)
 
     outfile = outfolder + file.split(".")[0]+"-time-analysis.tex"
     with open(outfile, "w+") as f:
