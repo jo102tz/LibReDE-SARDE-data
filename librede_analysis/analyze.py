@@ -70,19 +70,18 @@ def extract_latex_timetable(file, folder, outfolder):
         f.write(strbuffer)
 
 
-def extract_latex_recommendation_statistics(file, folder, outfolder):
-    data = pd.read_csv(folder + "\\" + file)
+def extract_latex_recommendation_statistics(data, file, outfolder):
     approaches, chosen = extract_reco_quality(data)
     if len(approaches) > 0:
-        strbuffer = "Approach \t& Average Rank \t& Accuracy Loss (in \\%) \\\\\\hline\n"
+        strbuffer = "Approach \t& Average Rank \t& Accuracy (\\%) \t& Accuracy Loss (\\%) \\\\\\hline\n"
         for name, values in approaches.items():
             arr = np.asarray(values)[:, :-1]
             means = np.mean(arr.astype(np.float), axis=0)
-            strbuffer = strbuffer + "{0}\t& {1:.2f} \t& {2:.2f}\\\\\n".format(name, means[1], means[2]*100)
+            strbuffer = strbuffer + "{0}\t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format(name, means[1], means[2]*100, means[3]*100)
         approach_means = np.mean(chosen, axis=0)
-        strbuffer = strbuffer + "\\hline {0} \t& {1:.2f} \t& {2:.2f}\\\\\n".format("Approach", approach_means[1], approach_means[2]*100)
+        strbuffer = strbuffer + "\\hline {0} \t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format("Approach", approach_means[1], approach_means[2]*100, approach_means[3]*100)
         random_means = np.mean(create_random(approaches), axis=0)
-        strbuffer = strbuffer + "{0} \t& {1:.2f} \t& {2:.2f}\\\\\n".format("Random", random_means[1], random_means[2]*100)
+        strbuffer = strbuffer + "{0} \t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format("Random", random_means[1], random_means[2]*100, random_means[3]*100)
         outfile = outfolder + file.split(".")[0]+"-reco-analysis.tex"
         with open(outfile, "w+") as f:
             f.write(strbuffer)
@@ -96,7 +95,8 @@ def create_random(approaches):
         approach = random.choice(list(approaches.values()))
         rank = approach[i][1]
         accuracy = approach[i][2]
-        chosen.append([timestamp, rank, accuracy])
+        acc_gain = approach[i][3]
+        chosen.append([timestamp, rank, accuracy, acc_gain])
     return chosen
 
 
@@ -117,11 +117,12 @@ def extract_reco_quality(data):
     approach = []
     for key, value in algo_performances.items():
         for row in value:
-            if row[3] == key:
+            if row[4] == key:
                 rank = row[1]
                 accuracy = row[2]
+                acc_gain = row[3]
                 timestamp = row[0]
-                approach.append([timestamp, rank, accuracy])
+                approach.append([timestamp, rank, accuracy, acc_gain])
     return algo_performances, approach
     # for reco in recommendations:
     #     best_of = get_best_of(reco[2])
@@ -151,9 +152,8 @@ def get_algo_performances(intervals):
     for i, val in enumerate(intervals):
         sorted = get_best_of(val[2])
         for i, el in enumerate(sorted):
-            approaches[el[0]].append([val[0], int(i+1), el[1]-sorted[0][1], val[1]])
+            approaches[el[0]].append([val[0], int(i+1), el[1], el[1]-sorted[0][1], val[1]])
     return approaches
-
 
 
 def get_best_of(estimations):
@@ -163,6 +163,7 @@ def get_best_of(estimations):
         if name not in approaches:
             approaches[name] = []
         approaches[name].append(get_error(est))
+
     compresssed = []
     for i in approaches:
         compresssed.append([i, np.mean(approaches[i])])
@@ -170,7 +171,7 @@ def get_best_of(estimations):
 
 
 def get_error(est):
-    return float(est["Estimated Error"])
+    return float(est["Real error"])
 
 
 #log = pd.read_csv("logbook.csv")
