@@ -30,9 +30,10 @@ def print_absolute_requests(file, outputfolder=None):
 def print_absolute_requests_with_util(tpsfile, utilfile, outputfolder=None):
     tps = pd.read_csv(tpsfile, delimiter=",")
     minTS = min(tps['Timestamps'])
-    fig, ax1 = plt.subplots()
+    plt.rcParams.update({'font.size': 14})
+    fig, ax1 = plt.subplots(figsize=(18, 5))
     ax1.stackplot(tps['Timestamps'] - minTS, [tps["wc1-absolute"], (tps["wc2-absolute"]), (tps["wc3-absolute"])],
-                  colors=["g", "r", "b"])
+                  colors=["seagreen", "lightcoral", "darkslateblue"])
 
     # plt.plot(tps['Timestamps'], tps["Timestamps"], color="black")
     ax1.set_xlabel("Time [s]")
@@ -45,7 +46,7 @@ def print_absolute_requests_with_util(tpsfile, utilfile, outputfolder=None):
     ax2.plot(util["TS"] - minTS, savgol_filter(util["Util"], 51, 3), color="black")
     ax2.tick_params(axis='y', labelcolor="black")
 
-    fig.legend(["WC1", "WC2", "WC3", "Utilization"], loc="upper right", bbox_to_anchor=(0.85,0.95))
+    fig.legend(["WC1", "WC2", "WC3", "Utilization"], loc="upper right", bbox_to_anchor=(0.95,0.95))
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
 
     filename = tpsfile.split("/")[-1].split(".")[0]
