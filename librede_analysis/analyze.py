@@ -1,14 +1,13 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import math
 import random
 from collections import defaultdict
 
+import numpy as np
+import pandas as pd
+
 targets = [(" ESTIMATION", "Estimation"),
-(" OPTIMIZATION", "Optimization"),
-(" RECOMMENDATION", "Recommendation"),
-(" TRAINING", "Training")]
+           (" OPTIMIZATION", "Optimization"),
+           (" RECOMMENDATION", "Recommendation"),
+           (" TRAINING", "Training")]
 
 
 def extract_stats(data):
@@ -56,16 +55,19 @@ def print_table_row(stats, name):
 
 
 def extract_latex_timetable(file, folder, outfolder):
-    stats = extract_stats(pd.read_csv(folder + "\\" +file))
+    stats = extract_stats(pd.read_csv(folder + "\\" + file))
 
     strbuffer = "Activity \t& Number of executions \t& Average execution time (s) \t& Std (s) \t& Total time spent executing (s)\\\\\\hline\n"
 
     for target in targets:
         if target[0] in stats:
             values = stats[target[0]]
-            strbuffer = strbuffer + "{0}\t&{1:}\t&{2:.1f}\t&{3:.1f}\t&{4:.1f}\\\\\n".format(target[1], len(values), np.mean(values)/1000, np.std(values)/1000, np.sum(values)/1000)
+            strbuffer = strbuffer + "{0}\t&{1:}\t&{2:.1f}\t&{3:.1f}\t&{4:.1f}\\\\\n".format(target[1], len(values),
+                                                                                            np.mean(values) / 1000,
+                                                                                            np.std(values) / 1000,
+                                                                                            np.sum(values) / 1000)
 
-    outfile = outfolder + file.split(".")[0]+"-time-analysis.tex"
+    outfile = outfolder + file.split(".")[0] + "-time-analysis.tex"
     with open(outfile, "w+") as f:
         f.write(strbuffer)
 
@@ -77,12 +79,19 @@ def extract_latex_recommendation_statistics(data, file, outfolder):
         for name, values in approaches.items():
             arr = np.asarray(values)[:, :-1]
             means = np.mean(arr.astype(np.float), axis=0)
-            strbuffer = strbuffer + "{0}\t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format(name, means[1], means[2]*100, means[3]*100)
+            strbuffer = strbuffer + "{0}\t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format(name, means[1],
+                                                                                          means[2] * 100,
+                                                                                          means[3] * 100)
         approach_means = np.mean(chosen, axis=0)
-        strbuffer = strbuffer + "\\hline {0} \t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format("Approach", approach_means[1], approach_means[2]*100, approach_means[3]*100)
+        strbuffer = strbuffer + "\\hline {0} \t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format("Approach",
+                                                                                               approach_means[1],
+                                                                                               approach_means[2] * 100,
+                                                                                               approach_means[3] * 100)
         random_means = np.mean(create_random(approaches), axis=0)
-        strbuffer = strbuffer + "{0} \t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format("Random", random_means[1], random_means[2]*100, random_means[3]*100)
-        outfile = outfolder + file.split(".")[0]+"-reco-analysis.tex"
+        strbuffer = strbuffer + "{0} \t& {1:.2f} \t& {2:.2f} \t& {3:.2f}\\\\\n".format("Random", random_means[1],
+                                                                                       random_means[2] * 100,
+                                                                                       random_means[3] * 100)
+        outfile = outfolder + file.split(".")[0] + "-reco-analysis.tex"
         with open(outfile, "w+") as f:
             f.write(strbuffer)
 
@@ -152,7 +161,7 @@ def get_algo_performances(intervals):
     for i, val in enumerate(intervals):
         sorted = get_best_of(val[2])
         for i, el in enumerate(sorted):
-            approaches[el[0]].append([val[0], int(i+1), el[1], el[1]-sorted[0][1], val[1]])
+            approaches[el[0]].append([val[0], int(i + 1), el[1], el[1] - sorted[0][1], val[1]])
     return approaches
 
 
@@ -173,7 +182,5 @@ def get_best_of(estimations):
 def get_error(est):
     return float(est["Real error"])
 
-
-#log = pd.read_csv("logbook.csv")
-#extract_table(log)
-
+# log = pd.read_csv("logbook.csv")
+# extract_table(log)
