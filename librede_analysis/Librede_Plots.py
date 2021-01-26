@@ -84,6 +84,32 @@ def print_base_estimators(file="logbook.csv", folder=None, output=None):
     experiment_figures.plot_base_estimators(logs, output)
 
 
+def analyze_experiment_split(mainfile, loadfile, mainfolder=None, output=None):
+    # Read File
+    logs = pd.read_csv(mainfolder + "\\" + mainfile, index_col=False, delimiter=",")
+    add_real_error(logs, real_vector=real_rds)
+
+    # Cleanup and adjust finish time to minutes
+
+    logs = logs[~logs['Estimated Error'].str.contains("Error")]
+    logs = logs[~logs['Estimated Error'].str.contains("Infinity")]
+    logs["Estimated Error"] = pd.to_numeric(logs["Estimated Error"], errors="coerce")
+    logs['Start time'] = (logs['Finish time'] - logs['Time']) / 1000
+    logs['Finish time'] = (logs['Finish time']) / 1000 - logs['Start time'].min()
+    logs['Start time'] = logs['Start time'] - logs['Start time'].min()
+
+    # Dump skipped events
+    logs = logs[~(logs['Time'] == 0)]
+
+    # read load file
+
+    loads = pd.read_csv(loadfile, index_col=False, delimiter=",")
+    loads['Finish time'] = loads['Timestamps'] - loads['Timestamps'].min()
+
+    # give to splitter
+    experiment_split.analyze_experiment_split(logs, loads, splits=10, outfile=output + "\\experiment_split.tex")
+
+
 def create_paper_figures():
     output = r"librede_analysis/paperfigures/"
     # create data-anylsis figures
@@ -115,28 +141,8 @@ def create_paper_figures():
                 add_real_error(data, real_vector=real_rds)
                 analyze.extract_latex_recommendation_statistics(data, filename, output)
                 # split experiment analysis only for combination
-                analyze_experiment_split(filename, dir, output)
+                analyze_experiment_split(filename, r"librede-parsing/arrivals.csv", dir, output)
             print("Finished ", filename)
-
-
-def analyze_experiment_split(file, folder=None, output=None):
-    # Read File
-    logs = pd.read_csv(folder + "\\" + file, index_col=False, delimiter=",")
-    add_real_error(logs, real_vector=real_rds)
-
-    # Cleanup and adjust finish time to minutes
-    logs = logs[~logs['Estimated Error'].str.contains("Error")]
-    logs = logs[~logs['Estimated Error'].str.contains("Infinity")]
-    logs["Estimated Error"] = pd.to_numeric(logs["Estimated Error"], errors="coerce")
-    logs['Start time'] = (logs['Finish time'] - logs['Time']) / 1000
-    logs['Finish time'] = (logs['Finish time']) / 1000 - logs['Start time'].min()
-    logs['Start time'] = logs['Start time'] - logs['Start time'].min()
-
-    # Dump skipped events
-    logs = logs[~(logs['Time'] == 0)]
-
-    # give to splitter
-    experiment_split.analyze_experiment_split(logs, splits=10, outfile=output + "\\experiment_split.tex")
 
 
 if __name__ == "__main__":
