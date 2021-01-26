@@ -4,8 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from librede_analysis import analyze
-from librede_analysis import experiment_figures
+from librede_analysis import analyze, experiment_split, experiment_figures
 
 real_rds = [0.01, 0.03, 0.005]
 
@@ -44,7 +43,7 @@ def add_real_error(df, real_vector):
 
 def analyze_logbook(file="logbook.csv", folder=None, output=None, print_estimation=True, print_optimizations=True):
     # Read File
-    logs = pd.read_csv(folder + "\\" + file, index_col=False, delimiter=",")
+    logs = pd.read_csv(folder + "/" + file, index_col=False, delimiter=",")
     add_real_error(logs, real_vector=real_rds)
 
     # Cleanup and adjust finish time to minutes
@@ -68,7 +67,7 @@ def analyze_logbook(file="logbook.csv", folder=None, output=None, print_estimati
 
 def print_base_estimators(file="logbook.csv", folder=None, output=None):
     # Read File
-    logs = pd.read_csv(folder + "\\" + file, index_col=False, delimiter=",")
+    logs = pd.read_csv(folder + "/" + file, index_col=False, delimiter=",")
     add_real_error(logs, real_vector=real_rds)
 
     # Cleanup and adjust finish time to minutes
@@ -94,22 +93,53 @@ def create_paper_figures():
     dir = r"librede_analysis/logbooks/paper"
     for filename in os.listdir(dir):
         if not os.path.isdir(dir + "/" + filename):
-            # analyze.extract_table(pd.read_csv(dir + "\\" + filename))
+            # this prints on console only
+            #analyze.extract_table(pd.read_csv(dir + "/" + filename))
+            # same analysis but to file
             analyze.extract_latex_timetable(filename, dir, output)
             if filename == "recommendation.csv":
                 # print only base estimators
                 print_base_estimators(filename, dir, output)
                 # print estimation
                 analyze_logbook(filename, dir, output, print_estimation=True, print_optimizations=False)
-                data = pd.read_csv(dir + "\\" + filename)
+                # extract recommendation statistics
+                data = pd.read_csv(dir + "/" + filename)
                 add_real_error(data, real_vector=real_rds)
                 analyze.extract_latex_recommendation_statistics(data, filename, output)
             if filename == "optimization.csv":
                 analyze_logbook(filename, dir, output, print_estimation=False, print_optimizations=True)
             if filename == "combined.csv":
                 analyze_logbook(filename, dir, output, print_estimation=True, print_optimizations=False)
+                # extract recommendation statistics
+                data = pd.read_csv(dir + "/" + filename)
+                add_real_error(data, real_vector=real_rds)
+                analyze.extract_latex_recommendation_statistics(data, filename, output)
+                # split experiment analysis only for combination
+                analyze_experiment_split(filename, dir, output)
             print("Finished ", filename)
 
 
+def analyze_experiment_split(file, folder=None, output=None):
+    # Read File
+    logs = pd.read_csv(folder + "\\" + file, index_col=False, delimiter=",")
+    add_real_error(logs, real_vector=real_rds)
+
+    # Cleanup and adjust finish time to minutes
+    logs = logs[~logs['Estimated Error'].str.contains("Error")]
+    logs = logs[~logs['Estimated Error'].str.contains("Infinity")]
+    logs["Estimated Error"] = pd.to_numeric(logs["Estimated Error"], errors="coerce")
+    logs['Start time'] = (logs['Finish time'] - logs['Time']) / 1000
+    logs['Finish time'] = (logs['Finish time']) / 1000 - logs['Start time'].min()
+    logs['Start time'] = logs['Start time'] - logs['Start time'].min()
+
+    # Dump skipped events
+    logs = logs[~(logs['Time'] == 0)]
+
+    # give to splitter
+    experiment_split.analyze_experiment_split(logs, splits=10, outfile=output + "\\experiment_split.tex")
+
+
 if __name__ == "__main__":
+    print("Analyzing logbooks...")
     create_paper_figures()
+    print("Done!")

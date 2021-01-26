@@ -2,12 +2,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.signal import savgol_filter
 
-name_mapping = {"RR": ["ResponseTimeRegression"],
-                "SD": ["ServiceDemandLaw"],
-                "UR": ["UtilizationRegression"],
-                "MO": ["MenasceOptimization"],
-                "LO": ["LiuOptimization"],
+name_mapping = {
                 "RT": ["ResponseTimeApprox"],
+                "SD": ["ServiceDemandLaw"],
+                "RR": ["ResponseTimeRegression"],
+                "UR": ["UtilizationRegression"],
+#                "MO": ["MenasceOptimization"],
+#                "LO": ["LiuOptimization"],
                 "WF": ["WangKalmanFilter"],
                 "KF": ["KumarKalmanFilter"]}
 
@@ -17,9 +18,12 @@ def get_approach_short(long_name):
         for name in value:
             if name in long_name:
                 return key
-    # If no approach known, return SD as default
-    return "SD"
-
+    # If nothing recommended (None.), we return the default SD
+    if long_name == " None.":
+        return "SD"
+    # If no approach known, return None
+    print("Approach name not found: " + long_name)
+    return None
 
 def print_relative_requests(file, outputfolder=None):
     tps = pd.read_csv(file, delimiter=",")
@@ -163,7 +167,7 @@ def plot_double_error_fig(logs, skippedLogs, errorvec, filename, plot_estimation
     # ax1.tick_params(axis='both', which='both', bottom='off', top='off', labelbottom='off', right='off', left='off',
     #                labelleft='off')
     ax1.set_yticks(ticks=[1, 2, 3, 4])
-    ax1.set_yticklabels(["Est", "Rec", "Tra", "Opt"])
+    ax1.set_yticklabels(["Est", "Sel", "Tra", "Opt"])
     ax1.set_xticklabels([])
     # ax1.legend(timelines, ['Estimation', 'Recommendation', 'Optimization', 'Training'], ncol=4)
     # ax1.set_xlabel("Time [min]")
