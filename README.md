@@ -25,7 +25,7 @@ In addition, a [script](librede-artificial_exp/remove_unnnecessary.py) for remov
 In addition, it contains the analysis data for the recent experiment run.
 
 3. [librede-synthetic](librede-synthetic/): Contains the workload driver, the load script, as well as the intensity description for measuring and setting the synthetic application under load. 
-In addition, the output of a set of previous experiment runs is stored. A [README](librede-synthetic/how%20to%20run.txt) provides instructions on how to execute the respective benchmark.
+In addition, the output of a set of previous experiment runs is stored. A [README](librede-synthetic/how%20to%20run.md) provides instructions on how to execute the respective benchmark.
 
 4. [librede-analysis](librede-analysis/): Contains analysis scripts for analysing the performance of SARDE using the so-called `logbooks`, i.e., the output of a continuous experiment run conducted by SARDE.
 In addition, some logbooks from previous experiments are contained. 
