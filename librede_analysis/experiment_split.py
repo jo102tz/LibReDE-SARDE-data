@@ -5,15 +5,6 @@ import numpy as np
 
 from librede_analysis import experiment_figures
 
-
-#
-# approaches = [[" tools.descartes.librede.approach.ResponseTimeApproximationApproach", "RT"],
-# [" tools.descartes.librede.approach.ServiceDemandLawApproach", "SD"],
-# [" tools.descartes.librede.approach.UtilizationRegressionApproach", "UR"],
-# [" tools.descartes.librede.approach.ResponseTimeRegressionApproach", "RR"],
-# [" tools.descartes.librede.approach.KumarKalmanFilterApproach", "KF"],
-# [" tools.descartes.librede.approach.WangKalmanFilterApproach", "WF"]]
-
 def index_of_dispersion(datapoints):
     if np.mean(datapoints) == 0:
         return math.nan
@@ -56,7 +47,7 @@ def analyze_experiment_split(logs, loads, splits=10, outfile=None):
 
 
 def print_split_to_latex(bins, approaches, outfile, print_approaches=False):
-    strbuffer = "\\#&\tMean-WC1&\tMean-WC2&\tMean-WC3&\tStd-WC1&\tStd-WC2&\tStd-WC3&\tIoD-WC1&\tIoD-WC2&\tIoD-WC3&\tSARDE"
+    strbuffer = "\\#&\tM-WC1&\tM-WC2&\tM-WC3&\tStd-WC1&\tStd-WC2&\tStd-WC3&\tIoD-WC1&\tIoD-WC2&\tIoD-WC3&\tSARDE"
     if print_approaches:
         strbuffer += "&\t{0}&\t{1}&\t{2}&\t{3}&\t{4}&\t{5}&\tBest".format(approaches[0],
                                                                                       approaches[1],
