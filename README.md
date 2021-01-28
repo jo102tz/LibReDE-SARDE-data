@@ -21,4 +21,13 @@ Additionally, the subsets intentionally contained cases where two or three workl
 The folder contains only experiments sampled every 1 second, then splits into the three different loads, each with 14 different experiment setting, which were each repeated 5 times.
 In addition, a [script](librede-artificial_exp/remove_unnnecessary.py) for removing unnecessary files is provided, that might get created while experimenting on the data.
 
-2.
+2. [librede-parsing](librede-parsing/): Contains a [parse](librede-parsing/parse.py) script that parses log-data produced by the monitoring and the workload generator into data that can be analyzed and processed by LibReDE. 
+In addition, it contains the analysis data for the recent experiment run.
+
+3. [librede-synthetic](librede-synthetic/): Contains the workload driver, the load script, as well as the intensity description for measuring and setting the synthetic application under load. 
+In addition, the output of a set of previous experiment runs is stored. A [README](librede-synthetic/how%20to%20run.txt) provides instructions on how to execute the respective benchmark.
+
+4. [librede-analysis](librede-analysis/): Contains analysis scripts for analysing the performance of SARDE using the so-called `logbooks`, i.e., the output of a continuous experiment run conducted by SARDE.
+In addition, some logbooks from previous experiments are contained. 
+
+The majority of the analysis and the respective data from the main experiments of the paper are also published as a [CodeOcean Capsule](https://doi.org/10.24433/CO.8429465.v1) for an easy one-click reproducibility, without the need for a setup.
