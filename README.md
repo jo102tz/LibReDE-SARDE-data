@@ -4,7 +4,7 @@ This project contains data, tools, and scripts required to execute workloads and
 SARDE enables continuous resource demand estimations, while constantly adapting and optimizing its used estimators.
 SARDE is designed as an AddOn to the classic LibReDE library.
 
-Check out the source code of SARDE [here](https://gitlab2.informatik.uni-wuerzburg.de/descartes/librede-rrde), and LibReDE [here](https://bitbucket.org/librede/librede/src/master/) for more information.
+Check out the source code of SARDE [here](https://github.com/jo102tz/LibReDE-SARDE), and LibReDE [here](https://github.com/DescartesResearch/LibReDE) for more information.
 
 The main publication for SARDE is currently under review at ACM Transactions on Autonomous and Adaptive Systems (TaaS).
 
@@ -30,4 +30,4 @@ In addition, the output of a set of previous experiment runs is stored. A [READM
 4. [librede-analysis](librede-analysis/): Contains analysis scripts for analysing the performance of SARDE using the so-called `logbooks`, i.e., the output of a continuous experiment run conducted by SARDE.
 In addition, some logbooks from previous experiments are contained. 
 
-The majority of the analysis and the respective data from the main experiments of the paper are also published as a [CodeOcean Capsule](https://doi.org/10.24433/CO.8429465.v1) for an easy one-click reproducibility, without the need for a setup.
+The majority of the analysis and the respective data from the main experiments of the paper are also published as a [CodeOcean Capsule](https://doi.org/10.24433/CO.8429465.v2) for an easy one-click reproducibility, without the need for a setup.
